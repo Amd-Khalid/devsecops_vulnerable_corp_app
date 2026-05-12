@@ -44,6 +44,36 @@ def login():
             
     return render_template('login.html')
 
+@app.route('/signup', methods=['POST'])
+def signup():
+    username = request.form['signup_username']
+    password = request.form['signup_password']
+    confirm_password = request.form['signup_confirm_password']
+
+    if not re.match(r"^[a-zA-Z0-9_]+$", username):
+        flash("Username may only contain letters, numbers, and underscores.")
+        return redirect('/login')
+
+    if len(password) < 6:
+        flash("Password must be at least 6 characters long.")
+        return redirect('/login')
+
+    if password != confirm_password:
+        flash("Passwords do not match.")
+        return redirect('/login')
+
+    conn = get_db_connection()
+    try:
+        conn.execute("INSERT INTO users (username, password, role) VALUES (?, ?, 'user')", (username, password))
+        conn.commit()
+        flash('Account created successfully. Please log in.')
+    except sqlite3.IntegrityError:
+        flash('Username already exists. Please choose another.')
+    finally:
+        conn.close()
+
+    return redirect('/login')
+
 @app.route('/logout')
 def logout():
     session.clear() # Proper session termination

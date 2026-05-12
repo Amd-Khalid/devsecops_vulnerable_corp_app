@@ -8,11 +8,29 @@
       {% endif %}
     {% endwith %}
 
-    <form method="POST" action="/login">
-        <label>Username:</label><br>
-        <input type="text" name="username" required><br><br>
-        <label>Password:</label><br>
-        <input type="password" name="password" required><br><br>
-        <button type="submit">Login</button>
-    </form>
+    <div style="display: flex; gap: 40px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 280px;">
+            <h3>Existing user</h3>
+            <form method="POST" action="/login">
+                <label>Username:</label><br>
+                <input type="text" name="username" required><br><br>
+                <label>Password:</label><br>
+                <input type="password" name="password" required><br><br>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+
+        <div style="flex: 1; min-width: 280px;">
+            <h3>Create a new account</h3>
+            <form method="POST" action="/signup">
+                <label>Username:</label><br>
+                <input type="text" name="signup_username" required><br><br>
+                <label>Password:</label><br>
+                <input type="password" name="signup_password" required><br><br>
+                <label>Confirm Password:</label><br>
+                <input type="password" name="signup_confirm_password" required><br><br>
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+    </div>
 {% endblock %}
