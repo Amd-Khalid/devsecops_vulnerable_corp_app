@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        {% if role == 'admin' %}
+            <a href="/admin">Admin Panel</a>
+        {% endif %}
+        <a href="/logout">Logout</a>
+    </nav>
+
+    <h2>Welcome to the Dashboard</h2>
+    
+    <h3>Create a New Post</h3>
+    <form method="POST" action="/dashboard">
+        <textarea name="content" rows="4" cols="50" placeholder="What's on your mind?" required></textarea><br>
+        <button type="submit">Post</button>
+    </form>
+
+    <hr>
+    <h3>Company Feed</h3>
+    <ul>
+        {% for post in posts %}
+            <li>
+                <strong>{{ post['author'] }}:</strong> 
+                <!-- VULNERABILITY: | safe allows HTML/Scripts to execute (Stored XSS) -->
+                {{ post['content'] | safe }} 
+                - <a href="/delete/{{ post['id'] }}" style="color:red; font-size: 0.8em;">[Delete]</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
