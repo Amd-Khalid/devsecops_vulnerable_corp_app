@@ -24,6 +24,9 @@
                 <strong>{{ post['author'] }}:</strong> 
                 <!-- VULNERABILITY: | safe allows HTML/Scripts to execute (Stored XSS) -->
                 {{ post['content'] | safe }} 
+                {% if username == post['author'] or role == 'admin' %}
+                - <a href="/edit/{{ post['id'] }}" style="color:#0066cc; font-size: 0.8em;">[Edit]</a>
+                {% endif %}
                 - <a href="/delete/{{ post['id'] }}" style="color:red; font-size: 0.8em;">[Delete]</a>
             </li>
         {% endfor %}

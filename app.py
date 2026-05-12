@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
 import sqlite3
 import re
 
@@ -68,7 +68,33 @@ def dashboard():
     posts = conn.execute("SELECT * FROM posts").fetchall()
     conn.close()
     
-    return render_template('dashboard.html', posts=posts, role=session.get('role'))
+    return render_template('dashboard.html', posts=posts, role=session.get('role'), username=session.get('username'))
+
+@app.route('/edit/<int:post_id>', methods=['GET', 'POST'])
+def edit_post(post_id):
+    if 'username' not in session:
+        return redirect('/login')
+
+    conn = get_db_connection()
+    post = conn.execute("SELECT * FROM posts WHERE id = ?", (post_id,)).fetchone()
+
+    if post is None:
+        conn.close()
+        abort(404)
+
+    if session.get('username') != post['author'] and session.get('role') != 'admin':
+        conn.close()
+        return "Access Denied", 403
+
+    if request.method == 'POST':
+        content = request.form['content']
+        conn.execute("UPDATE posts SET content = ? WHERE id = ?", (content, post_id))
+        conn.commit()
+        conn.close()
+        return redirect('/dashboard')
+
+    conn.close()
+    return render_template('edit.html', post=post, role=session.get('role'))
 
 @app.route('/admin')
 def admin():
