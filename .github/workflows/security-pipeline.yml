@@ -50,7 +50,12 @@ jobs:
         run: docker build -t vulnerable-app .
         
       - name: Run Docker Container
-        run: docker run -d -p 5000:5000 vulnerable-app
+        # Using --network host bypasses Docker's isolated network 
+        # so ZAP can successfully hit localhost:5000
+        run: docker run -d --network host vulnerable-app
+        
+      - name: Wait for application to start
+        run: sleep 15 # Increased slightly to ensure the app is fully booted
         
       - name: Wait for application to start
         run: sleep 10
