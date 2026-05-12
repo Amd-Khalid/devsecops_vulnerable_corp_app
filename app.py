@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_form, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
 import sqlite3
 import re
 
@@ -64,11 +64,16 @@ def dashboard():
         conn.execute("INSERT INTO posts (author, content) VALUES (?, ?)", (session['username'], content))
         conn.commit()
         
-    # CRUD: Read
-    posts = conn.execute("SELECT * FROM posts").fetchall()
+    # CRUD: Read (with optional search)
+    q = request.args.get('q', '').strip()
+    if q:
+        like = f"%{q}%"
+        posts = conn.execute("SELECT * FROM posts WHERE content LIKE ? OR author LIKE ?", (like, like)).fetchall()
+    else:
+        posts = conn.execute("SELECT * FROM posts").fetchall()
     conn.close()
     
-    return render_template('dashboard.html', posts=posts, role=session.get('role'), username=session.get('username'))
+    return render_template('dashboard.html', posts=posts, role=session.get('role'), username=session.get('username'), q=q)
 
 @app.route('/edit/<int:post_id>', methods=['GET', 'POST'])
 def edit_post(post_id):

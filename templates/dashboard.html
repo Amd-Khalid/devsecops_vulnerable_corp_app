@@ -9,6 +9,11 @@
     </nav>
 
     <h2>Welcome to the Dashboard</h2>
+    <form method="GET" action="/dashboard" style="margin-bottom:10px;">
+        <input type="text" name="q" placeholder="Search posts or authors" value="{{ q }}" style="padding:6px; width:60%;" />
+        <button type="submit">Search</button>
+        {% if q %}<a href="/dashboard" style="margin-left:10px; color:#666;">Clear</a>{% endif %}
+    </form>
     
     <h3>Create a New Post</h3>
     <form method="POST" action="/dashboard">
@@ -18,6 +23,9 @@
 
     <hr>
     <h3>Company Feed</h3>
+    {% if q %}
+        <p>Showing results for: <strong>{{ q }}</strong></p>
+    {% endif %}
     <ul>
         {% for post in posts %}
             <li>
