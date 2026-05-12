@@ -129,4 +129,5 @@ def delete_post(post_id):
     return redirect('/dashboard')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    # ssl_context='adhoc' forces Flask to generate a temporary self-signed HTTPS certificate
+    app.run(host='0.0.0.0', port=5000, ssl_context='adhoc')
