@@ -5,6 +5,8 @@ import re
 app = Flask(__name__)
 app.secret_key = 'super_secret_key_change_in_production' # Vulnerability: Hardcoded secret
 
+app.config['SESSION_COOKIE_HTTPONLY'] = False
+
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
