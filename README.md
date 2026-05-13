@@ -112,3 +112,11 @@ See `requirements.txt`:
 ## License
 
 Educational use only.
+
+## Project Team & Roles
+
+| Name | Role | Primary Responsibilities |
+| :--- | :--- | :--- |
+| **Ahmed Khalid** | **DevSecOps Engineer** | Lead developer for the CI/CD pipeline integration, SAST/DAST automation, and backend security patching for SQLi and IDOR. |
+| **Sarfaraz Baig** | **Security Researcher** | Responsible for vulnerability research, threat modeling, and performing manual penetration testing to identify business logic flaws. |
+| **Daniyal Shadab** | **QA & Compliance Lead** | Focused on regression testing suites, SCA dependency management, and generating compliance documentation (Audit & Retest Reports). |
