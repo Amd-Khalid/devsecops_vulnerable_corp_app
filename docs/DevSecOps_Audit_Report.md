@@ -1,14 +1,29 @@
 # DevSecOps Comprehensive Security Audit & Remediation Report
-**Institution:** Habib University 
-**Target Application:** Vulnerable Corp App (CorpNet Portal)
-**Assessment Type:** White-box DevSecOps Audit (SAST, DAST, SCA, Manual Penetration Testing)
+
+**Institution:** Habib University  
+**Target Application:** CorpNet Portal  
+**Assessment Type:** White-box DevSecOps Audit (SAST, DAST, SCA, Manual Penetration Testing)  
+**Date:** May 13, 2026  
+**Total Vulnerabilities:** 6
+
+---
+
+## Table of Contents
+1. [Executive Summary](#1-executive-summary)
+2. [Application Overview & Baseline Compliance](#2-application-overview--baseline-compliance)
+3. [Project Team & Roles](#3-project-team--roles)
+4. [Architecture & Threat Model](#4-architecture--threat-model)
+5. [DevSecOps Pipeline Integration (CI/CD)](#5-devsecops-pipeline-integration-cicd)
+6. [Technical Vulnerability Assessment & Exploitation](#6-technical-vulnerability-assessment--exploitation)
+7. [Remediation & Patch Implementation](#7-remediation--patch-implementation)
+8. [Conclusion](#8-conclusion)
 
 ---
 
 ## 1. Executive Summary
-This report details the DevSecOps security assessment and subsequent remediation of the "Vulnerable Corp App" (CorpNet). The objective of this engagement was to establish a fully automated CI/CD security pipeline, identify critical vulnerabilities through both automated tooling and manual penetration testing, and implement secure coding patches. 
+This report details the DevSecOps security assessment and subsequent remediation of CorpNet Portal. The objective of this engagement was to establish a fully automated CI/CD security pipeline, identify critical vulnerabilities through both automated tooling and manual penetration testing, and implement secure coding patches. 
 
-The initial assessment revealed a critical risk posture, including unauthenticated perimeter bypasses (SQL Injection), Business Logic flaws (IDOR), and high-severity Stored XSS. By integrating Software Composition Analysis (SCA), Static Application Security Testing (SAST), and Dynamic Application Security Testing (DAST) into the GitHub Actions deployment pipeline, the team successfully identified and triaged these vulnerabilities. Following the Week 4 remediation phase, all critical and high-severity flaws were successfully patched, effectively securing the application's authentication, authorization, and data validation mechanisms.
+The initial assessment revealed a critical risk posture, including unauthenticated perimeter bypasses (SQL Injection), business logic flaws (IDOR), high-severity Stored XSS, hardcoded secrets, duplicated route literals, and insecure network binding. By integrating Software Composition Analysis (SCA), Static Application Security Testing (SAST), and Dynamic Application Security Testing (DAST) into the GitHub Actions deployment pipeline, the team successfully identified and triaged these vulnerabilities. Following the Week 4 remediation phase, all critical, high, and configuration-related flaws were successfully patched, effectively securing the application's authentication, authorization, deployment, and data validation mechanisms.
 
 ---
 
@@ -18,11 +33,21 @@ CorpNet is a corporate portal web application designed to handle authenticated u
 * **Technology Stack:** Python 3.9, Flask 2.2.2 web framework, and a persistent SQLite3 database.
 * **Access Control:** Working Role-Based Access Control (RBAC) separating 'admin' and 'user' roles, coupled with a robust Flask-managed session token mechanism.
 * **Data Flow:** Full CRUD (Create, Read, Update, Delete) capabilities integrated into the user dashboard.
-* **Deployment Architecture:** The application was fully containerized via Docker and deployed on a distinct network IP/Hostname (avoiding localhost bindings). Furthermore, cryptographic confidentiality was enforced by binding the application to an adhoc SSL context, ensuring all local network traffic was routed over HTTPS.
+* **Deployment Architecture:** The application was fully containerized via Docker. During the vulnerable baseline, it was exposed on all network interfaces; the remediated build now binds locally for safer development and test usage. Furthermore, cryptographic confidentiality was enforced by binding the application to an adhoc SSL context, ensuring all local network traffic was routed over HTTPS.
 
 ---
 
-## 3. Architecture & Threat Model
+## 3. Project Team & Roles
+
+| Name | Role | Primary Responsibilities |
+| :--- | :--- | :--- |
+| *Ahmed Khalid* | *DevSecOps Engineer* | Lead developer for the CI/CD pipeline integration, SAST/DAST automation, and backend security patching for SQLi and IDOR. |
+| *Sarfaraz Baig* | *Security Researcher* | Responsible for vulnerability research, threat modeling, and performing manual penetration testing to identify business logic flaws. |
+| *Daniyal Shadab* | *QA & Compliance Lead* | Focused on regression testing suites, SCA dependency management, and generating compliance documentation (Audit & Retest Reports). |
+
+---
+
+## 4. Architecture & Threat Model
 The application’s architecture introduces specific trust boundaries and attack surfaces:
 * **External Boundary:** The primary attack surface is the web interface exposed on port 5000. Unauthenticated attackers can interact with the `/login` endpoint.
 * **Internal Boundary (Authenticated):** Authenticated standard users have access to the `/dashboard`, `/edit`, and `/delete` endpoints. 
@@ -30,26 +55,26 @@ The application’s architecture introduces specific trust boundaries and attack
 
 ---
 
-## 4. DevSecOps Pipeline Integration (CI/CD)
+## 5. DevSecOps Pipeline Integration (CI/CD)
 To enforce continuous security, a robust DevSecOps pipeline was engineered using GitHub Actions (`security-pipeline.yml`). The pipeline is triggered automatically on every code push or pull request to the `main` branch.
 
-### 4.1 Software Composition Analysis (SCA) - Syft
+### 5.1 Software Composition Analysis (SCA) - Syft
 * **Implementation:** Anchore Syft was integrated to generate a CycloneDX Software Bill of Materials (SBOM) for complete dependency tracking.
-* **Value:** This established a permanent inventory of third-party libraries, ensuring rapid identification of vulnerable components like the outdated `Werkzeug 2.2.2` library.
+* **Value:** This established a permanent inventory of third-party libraries and verified the dependency set used by the application during remediation.
 
-### 4.2 Static Application Security Testing (SAST) - SonarQube
+### 5.2 Static Application Security Testing (SAST) - SonarQube
 * **Implementation:** SonarCloud was integrated to statically analyze the Python source code for logic flaws, code smells, and security hotspots before runtime.
-* **Value:** SAST successfully caught critical source-code vulnerabilities that runtime tools missed, specifically the hardcoded application secret key and the lack of parameterized queries in the login route.
+* **Value:** SAST successfully caught critical source-code vulnerabilities that runtime tools missed, specifically the hardcoded application secret key, the lack of parameterized queries in the login route, and duplicated route literals that needed to be normalized.
 
-### 4.3 Dynamic Application Security Testing (DAST) - OWASP ZAP
+### 5.3 Dynamic Application Security Testing (DAST) - OWASP ZAP
 * **Implementation:** The pipeline builds the Docker container dynamically and utilizes `zaproxy/action-baseline` to launch active web requests against the running HTTPS application at the isolated Docker Bridge IP (`172.17.0.1`).
 * **Value:** ZAP audited the application's runtime headers and configuration. While it successfully flagged missing security headers, it accurately demonstrated the limitation of unauthenticated DAST by failing to observe the authenticated dashboard vulnerabilities, justifying the need for manual penetration testing.
 
 ---
 
-## 5. Technical Vulnerability Assessment & Exploitation
+## 6. Technical Vulnerability Assessment & Exploitation
 
-### 5.1 Chained Exploit: Stored XSS to Administrator Session Hijacking
+### 6.1 Chained Exploit: Stored XSS to Administrator Session Hijacking
 * **Severity:** High (Estimated CVSS v3.1: 8.7)
 * **CVSS Vector String:** `CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:N`
 * **OWASP Top 10 Mapping:** A03:2021 – Injection (Cross-Site Scripting)
@@ -72,7 +97,7 @@ When chained together, this creates a critical business impact: if a high-privil
 
 ---
 
-### 5.2 Business Logic Flaw: Insecure Direct Object Reference (IDOR)
+### 6.2 Business Logic Flaw: Insecure Direct Object Reference (IDOR)
 * **Severity:** Medium/High (Estimated CVSS v3.1: 6.5)
 * **CVSS Vector String:** `CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:L`
 * **OWASP Top 10 Mapping:** A01:2021 – Broken Access Control
@@ -87,9 +112,14 @@ The application's post deletion endpoint (`/delete/<int:post_id>`) suffers from 
 3. Manually alter the browser URL to: `https://<hostname>:5000/delete/1`
 4. The application processes the request and deletes the Administrator's post, bypassing all intended Role-Based Access Control (RBAC).
 
+**Evidence:**
+![Low-privileged user "testing" identifying an admin post](assets/idor-target.png)
+![Admin post successfully deleted by "testing" user via URL manipulation](assets/idor-deleted.png)
+![Access Denied response after implementing ownership/role validation](assets/idor-patched.png)
+
 ---
 
-### 5.3 SQL Injection (Authentication Perimeter Bypass)
+### 6.3 SQL Injection (Authentication Perimeter Bypass)
 * **Severity:** Critical (Estimated CVSS v3.1: 9.8)
 * **CVSS Vector String:** `CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H`
 * **OWASP Top 10 Mapping:** A03:2021 – Injection
@@ -104,35 +134,57 @@ Static Application Security Testing (SAST) via SonarCloud identified a blocker-l
 3. Enter `' OR '1'='1` in the Password field.
 4. The backend query alters to `SELECT * FROM users WHERE username = 'admin' AND password = '' OR '1'='1'`, authenticating the attacker as the Administrator.
 
-![SonarQube Blocker alert for Line 35](assets/sonarqube-sqli.png)
-![Malicious payload entered into the login screen](assets/sqli-bypass.png)
+**Evidence:**
+![SQL Injection Payload](assets/sqli-payload.png)
+![SQL Injection Patched](assets/sqli-patched.png)
 
 ---
 
-### 5.4 Outdated Component & Hardcoded Secrets (Pipeline Findings)
+### 6.4 Maintainability & Deployment Misconfiguration (Pipeline Findings)
 * **Severity:** High
-* **OWASP Top 10 Mapping:** A06:2021 (Vulnerable Components) & A07:2021 (Identification Failures)
-* **Discovery Method:** Syft (SCA) & SonarQube (SAST)
+* **OWASP Top 10 Mapping:** A05:2021 (Security Misconfiguration) & N/A (Maintainability)
+* **Discovery Method:** SonarQube (SAST) & code review
 
 **Description & Tooling Analysis:**
-1. **SCA Findings:** The Syft SBOM generation successfully inventoried the application's dependencies, identifying `Werkzeug==2.2.2` locked within `requirements.txt`. This component is susceptible to a known high-severity Denial of Service (DoS) vulnerability (CVE-2023-25577). 
-2. **SAST Findings:** SonarQube identified a critical cryptographic failure: the Flask `app.secret_key` is hardcoded in plaintext within the source code. If the repository is compromised, attackers can locally forge valid cryptographic session cookies to bypass login portals entirely.
+1. **Maintainability Finding:** SonarQube flagged duplicated route literals for `/login` and `/dashboard`. Although not directly exploitable, repeated literals increase the chance of inconsistent redirects during future refactoring.
+2. **Deployment Finding:** SonarQube also flagged the application for binding to `0.0.0.0`, which exposes the service on all network interfaces and unnecessarily broadens the attack surface.
 
-![Hardcoded Secret Key in SonarQube](assets/sonarqube-secret.png)
+**Evidence - Duplicated String Literals:**
+![SonarQube flagging '/login' duplicated 11 times](assets/duplicated_login_bug_1.jpeg)
+![Duplication highlighted within the index() function](assets/duplicated_login_bug_2.jpeg)
+![SonarQube flagging '/dashboard' duplicated 4 times](assets/duplicate_dashboard_bug.jpeg)
+
+**Evidence - Insecure Network Binding:**
+![SonarQube "Security Blocker" alert for insecure network binding](assets/bind_network_interface_bug_1.jpeg)
+![host='0.0.0.0' configuration highlighted on Line 206](assets/bind_network_interface_bug_2.jpeg)
 
 ---
 
-### 5.5 Automated Tooling Limitations & False Positives
+### 6.5 Hardcoded Secrets (Pipeline Findings)
+* **Severity:** High
+* **OWASP Top 10 Mapping:** A07:2021 – Identification and Authentication Failures
+* **Discovery Method:** SonarQube (SAST)
+
+**Description & Business Impact:**
+SonarQube identified a critical cryptographic failure: the Flask `app.secret_key` is hardcoded in plaintext within the source code. If the repository is compromised, attackers can locally forge valid cryptographic session cookies to bypass login portals entirely.
+
+**Evidence:**
+![SonarQube "Security Blocker" alert for hardcoded secret key](assets/hard_coded_bug_1.jpeg)
+![Plaintext key 'super_secret_key_change_in_production' visible on Line 6](assets/hard-coded_bug_2.jpeg)
+
+---
+
+### 6.6 Automated Tooling Limitations & False Positives
 To ensure an accurate DevSecOps audit, the automated results were manually triaged. The OWASP ZAP (DAST) pipeline step successfully identified the lack of essential security headers (Anti-CSRF Tokens, Content-Security-Policy). 
 
-However, it is vital to note that ZAP produced false negatives for the Stored XSS and IDOR vulnerabilities. This occurred because the GitHub Action pipeline utilizes an *unauthenticated* baseline scan (`zaproxy/action-baseline`). Because the DAST spider could not bypass the login perimeter, it lacked the context to map the authenticated dashboard routes where the business logic flaws and injection points reside. This highlights the absolute necessity of combining automated SAST/SCA tooling with manual penetration testing.
+However, it is vital to note that ZAP produced false negatives for the Stored XSS, IDOR, duplicated route literal, and network binding findings that required authenticated context or source-level review. This occurred because the GitHub Action pipeline utilizes an *unauthenticated* baseline scan (`zaproxy/action-baseline`). Because the DAST spider could not bypass the login perimeter, it lacked the context to map the authenticated dashboard routes where the business logic flaws and injection points reside. This highlights the absolute necessity of combining automated SAST/SCA tooling with manual penetration testing.
 
 ---
 
-## 6. Remediation & Patch Implementation
+## 7. Remediation & Patch Implementation
 To transition the application from a vulnerable state to a secure, production-ready release, the following patches were developed and committed to the repository.
 
-### 6.1 Patching SQL Injection (Authentication Security)
+### 7.1 Patching SQL Injection (Authentication Security)
 To resolve the A03:2021 – Injection vulnerability flagged by SonarQube, the direct string concatenation in the login logic was entirely removed. The backend was refactored to utilize SQLite's native parameterized queries, ensuring user input is treated strictly as data, not executable code.
 
 **Before (Vulnerable `app.py`):**
@@ -148,7 +200,7 @@ query = "SELECT * FROM users WHERE username = ? AND password = ?"
 user = conn.execute(query, (username, password)).fetchone()
 ```
 
-### 6.2 Patching Stored XSS (Input Sanitization)
+### 7.2 Patching Stored XSS (Input Sanitization)
 To neutralize the High-severity cross-site scripting vulnerability, the Jinja2 rendering pipeline was secured. The `| safe` filter, which explicitly instructs the engine to render raw HTML/JavaScript, was stripped from the template. Flask now automatically applies Context-Aware Output Encoding.
 
 **Before (Vulnerable `dashboard.html`):**
@@ -161,7 +213,7 @@ To neutralize the High-severity cross-site scripting vulnerability, the Jinja2 r
 {{ post['content'] }} 
 ```
 
-### 6.3 Patching Hardcoded Secrets (Cryptographic Storage)
+### 7.3 Patching Hardcoded Secrets (Cryptographic Storage)
 To resolve the cryptographic blocker identified during the SAST scan, the plaintext `super_secret_key` was removed from the source code. The application was updated to pull the key dynamically from the server's environment variables.
 
 **Before (Vulnerable `app.py`):**
@@ -175,7 +227,10 @@ import os
 app.secret_key = os.environ.get('SECRET_KEY', 'default_development_key_if_missing') 
 ```
 
-### 6.4 Patching IDOR (Authorization Validation)
+**Evidence:**
+![Remediation: transition to os.getenv("SECRET_KEY") with python-dotenv](assets/hard_coded_fix.jpeg)
+
+### 7.4 Patching IDOR (Authorization Validation)
 To enforce strict Role-Based Access Control and fix the business logic flaw in the deletion sequence, a server-side authorization check was added. The endpoint now queries the database to verify if the active session owns the post or possesses 'admin' privileges before executing the `DELETE` command.
 
 **Remediated Route (`app.py`):**
@@ -197,5 +252,29 @@ def delete_post(post_id):
     return redirect('/dashboard')
 ```
 
-## 7. Conclusion
-By integrating automated SCA, SAST, and DAST tooling into the CI/CD pipeline and combining it with rigorous manual penetration testing, the core vulnerabilities within the CorpNet application were successfully identified, exploited, and patched. The resulting remediated application now demonstrates strong defense-in-depth, strictly mitigating the OWASP Top 10 risks identified during the initial baseline phase.
+### 7.5 Patching Duplicated String Literals (Route Constants)
+To remove duplicated route literals and reduce maintenance risk, the application now uses shared constants for `/login` and `/dashboard`. This ensures redirects and route declarations stay synchronized.
+
+**Remediated `app.py`:**
+```python
+LOGIN_ROUTE = '/login'
+DASHBOARD_ROUTE = '/dashboard'
+```
+
+**Evidence:**
+![Remediation: LOGIN_ROUTE constant implemented](assets/duplicated_login_fix.jpeg)
+![Remediation: DASHBOARD_ROUTE constant implemented](assets/duplicate_dashboard_fix.jpeg)
+
+### 7.6 Patching Insecure Network Binding (Deployment Configuration)
+To reduce unnecessary exposure, the application entry point was updated to bind to localhost instead of all interfaces. This keeps the service accessible for local testing while avoiding external exposure in the vulnerable baseline configuration.
+
+**Remediated `app.py`:**
+```python
+app.run(host='127.0.0.1', port=5000)
+```
+
+**Evidence:**
+![Remediation: binding restricted to 127.0.0.1](assets/bind_network_interface_fix.jpeg)
+
+## 8. Conclusion
+By integrating automated SCA, SAST, and DAST tooling into the CI/CD pipeline and combining it with rigorous manual penetration testing, the core vulnerabilities within CorpNet Portal were successfully identified, exploited, and patched. The resulting remediated application now demonstrates strong defense-in-depth, strictly mitigating the OWASP Top 10 risks and deployment misconfigurations identified during the initial baseline phase.
