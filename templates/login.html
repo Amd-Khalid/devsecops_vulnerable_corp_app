@@ -1,46 +1,215 @@
 {% extends 'base.html' %}
 {% block content %}
+    <style>
+        .auth-shell .hero-panel {
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-shell .auth-section {
+            display: grid;
+            gap: 40px;
+        }
+        .auth-shell .hero-panel::after {
+            content: '';
+            position: absolute;
+            inset: auto -60px -80px auto;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(32, 178, 170, 0.18) 0%, rgba(32, 178, 170, 0) 68%);
+            pointer-events: none;
+        }
+        .auth-shell .auth-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        .auth-shell .auth-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+            margin-top: 12px;
+        }
+        .auth-shell .auth-card-header {
+            padding: 26px 28px 0;
+            text-align: left;
+        }
+        .auth-shell .auth-card-body {
+            padding: 22px 28px 28px;
+        }
+        .auth-shell .auth-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0 28px;
+        }
+        .auth-shell .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 24px 0 0;
+            display: grid;
+            gap: 14px;
+        }
+        .auth-shell .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            color: var(--text-secondary);
+        }
+        .auth-shell .feature-list li::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            margin-top: 6px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            flex-shrink: 0;
+        }
+        .auth-shell .auth-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 14px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: var(--primary-lighter);
+            color: var(--primary);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .auth-shell .auth-note {
+            margin: 16px 0 0;
+            color: var(--text-tertiary);
+            font-size: 0.92rem;
+        }
+        .auth-shell .auth-helper {
+            margin: 0 0 20px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        .auth-shell .stacked-actions {
+            display: grid;
+            gap: 12px;
+        }
+        .auth-shell .secondary-box {
+            padding: 18px 20px;
+            border-radius: 14px;
+            background: var(--primary-lighter);
+            border: 1px solid var(--primary-light);
+        }
+        .auth-shell .secondary-box p {
+            margin: 0;
+        }
+        .auth-shell .mini-label {
+            margin: 0 0 4px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--primary);
+        }
+        .auth-shell .hero-copy {
+            max-width: 58ch;
+        }
+        @media (max-width: 768px) {
+            .auth-shell .auth-card-header,
+            .auth-shell .auth-card-body {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            .auth-shell .auth-divider {
+                margin: 0 20px;
+            }
+        }
+    </style>
+
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <div class="alert">{{ messages[0] }}</div>
       {% endif %}
     {% endwith %}
 
-    <div class="card-grid">
-        <section class="card">
-            <h2>Welcome Back</h2>
-            <p class="text-muted">Sign in to unlock the internal feed and start posting updates.</p>
-            <form method="POST" action="/login">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input id="username" type="text" name="username" required>
+    <section class="auth-section auth-shell">
+        <div class="hero-panel">
+            <p class="eyebrow">Internal workspace</p>
+            <h1 class="hero-title">Welcome back to CorpNet</h1>
+            <p class="hero-copy">Sign in to share updates, keep conversations moving, and stay on top of the latest company posts from one tidy place.</p>
+            <div class="stat-grid">
+                <div class="stat">
+                    <strong>Feed</strong>
+                    <span>Team updates</span>
                 </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input id="password" type="password" name="password" required>
+                <div class="stat">
+                    <strong>Roles</strong>
+                    <span>Admin control</span>
                 </div>
-                <button type="submit">Login</button>
-            </form>
-        </section>
+                <div class="stat">
+                    <strong>Posts</strong>
+                    <span>Simple sharing</span>
+                </div>
+            </div>
+            <ul class="feature-list">
+                <li>Post updates and keep work visible across the team.</li>
+                <li>Use the dashboard to review conversations at a glance.</li>
+                <li>Manage accounts and moderation from the admin panel.</li>
+            </ul>
+        </div>
 
-        <section class="card">
-            <h2>Create Account</h2>
-            <p class="text-muted">New employees can set up their profile and join the conversation.</p>
-            <form method="POST" action="/signup">
-                <div class="form-group">
-                    <label for="signup_username">Username</label>
-                    <input id="signup_username" type="text" name="signup_username" required>
+        <div class="auth-grid">
+            <div class="auth-card">
+                <div class="auth-card-header">
+                    <p class="auth-kicker">Sign in</p>
+                    <h2 style="margin-bottom: 8px;">Access your workspace</h2>
+                    <p class="auth-helper">Use your existing account to open the dashboard and continue where you left off.</p>
                 </div>
-                <div class="form-group">
-                    <label for="signup_password">Password</label>
-                    <input id="signup_password" type="password" name="signup_password" required>
+                <div class="auth-card-body">
+                    <form method="POST" action="/login">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input id="username" type="text" name="username" placeholder="Enter your username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input id="password" type="password" name="password" placeholder="Enter your password" required>
+                        </div>
+                        <div class="stacked-actions">
+                            <button type="submit" style="width: 100%;">Sign In</button>
+                            <div class="secondary-box">
+                                <p class="mini-label">New account</p>
+                                <p class="auth-note">Create a profile below if you do not have access yet.</p>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="signup_confirm_password">Confirm Password</label>
-                    <input id="signup_confirm_password" type="password" name="signup_confirm_password" required>
+            </div>
+
+            <div class="auth-card">
+                <div class="auth-card-header">
+                    <p class="auth-kicker">Create account</p>
+                    <h2 style="margin-bottom: 8px;">Join CorpNet</h2>
+                    <p class="auth-helper">Set up a workspace account for posts, updates, and internal collaboration.</p>
                 </div>
-                <button type="submit">Sign Up</button>
-            </form>
-        </section>
-    </div>
+                <div class="auth-card-body">
+                    <form method="POST" action="/signup">
+                        <div class="form-group">
+                            <label for="signup_username">Username</label>
+                            <input id="signup_username" type="text" name="signup_username" placeholder="Choose a username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup_password">Password</label>
+                            <input id="signup_password" type="password" name="signup_password" placeholder="At least 6 characters" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup_confirm_password">Confirm Password</label>
+                            <input id="signup_confirm_password" type="password" name="signup_confirm_password" placeholder="Re-enter your password" required>
+                        </div>
+                        <button type="submit" style="width: 100%;">Create Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %} 

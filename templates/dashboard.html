@@ -1,66 +1,86 @@
 {% extends 'base.html' %}
 {% block content %}
-    <nav>
-        <a href="/dashboard">Dashboard</a>
-        {% if role == 'admin' %}
-            <a href="/admin">Admin Panel</a>
-        {% endif %}
-        <a href="/logout">Logout</a>
-    </nav>
+    <section class="hero-layout">
+        <div class="hero-panel">
+            <p class="eyebrow">Dashboard</p>
+            <h1 class="hero-title">Company Feed</h1>
+            <p class="hero-copy">Share updates with your team, discover announcements, and stay connected with your workspace.</p>
 
-    <section class="card">
-        <div class="post-header">
-            <div>
-                <h2>Company Dashboard</h2>
-                <p class="text-muted">Post updates, search the feed, and manage your content.</p>
+            <div class="stat-grid">
+                <div class="stat">
+                    <strong>{{ posts|length }}</strong>
+                    <span>Total Posts</span>
+                </div>
+                <div class="stat">
+                    <strong>{{ username }}</strong>
+                    <span>Your Account</span>
+                </div>
+                <div class="stat">
+                    <strong>{{ role|title }}</strong>
+                    <span>Your Role</span>
+                </div>
             </div>
         </div>
-        <form method="GET" action="/dashboard" class="search-bar">
-            <input type="text" name="q" placeholder="Search posts or authors" value="{{ q }}" />
-            <button type="submit">Search</button>
-            {% if q %}<a href="/dashboard" class="button secondary">Clear</a>{% endif %}
-        </form>
-    </section>
 
-    <section class="card">
-        <h3>Create a New Post</h3>
-        <form method="POST" action="/dashboard">
-            <div class="form-group">
-                <label for="content">Post Content</label>
-                <textarea id="content" name="content" placeholder="Share a company update or highlight." required></textarea>
-            </div>
-            <button type="submit">Post</button>
-        </form>
-    </section>
-
-    <section class="card">
-        <div class="post-header">
-            <h3>Company Feed</h3>
-            {% if q %}<span class="text-muted">Showing results for: <strong>{{ q }}</strong></span>{% endif %}
+        <div class="hero-panel compact">
+            <h3>Search Feed</h3>
+            <p class="text-muted">Find posts by content or author</p>
+            <form method="GET" action="/dashboard" class="search-bar">
+                <input type="text" name="q" placeholder="Search posts or authors..." value="{{ q }}" />
+                <button type="submit">Search</button>
+                {% if q %}<a href="/dashboard" class="button secondary">Clear</a>{% endif %}
+            </form>
         </div>
-        {% if posts %}
-            <ul class="post-list">
-                {% for post in posts %}
-                    <li class="post-item">
-                        <div class="post-header">
-                            <strong>{{ post['author'] }}</strong>
-                            <span class="post-meta">Post #{{ post['id'] }}</span>
-                        </div>
-                        <div>
-                            <!-- VULNERABILITY: | safe allows HTML/Scripts to execute (Stored XSS) -->
-                            {{ post['content'] | safe }}
-                        </div>
-                        <div class="post-actions">
-                            {% if username == post['author'] or role == 'admin' %}
-                                <a href="/edit/{{ post['id'] }}">Edit</a>
-                            {% endif %}
-                            <a href="/delete/{{ post['id'] }}" class="danger">Delete</a>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="empty-state">No posts found yet. Create the first post or adjust your search query.</p>
-        {% endif %}
     </section>
+
+    <div class="dashboard-grid">
+        <section class="card">
+            <h3 style="margin-top: 0;">Create New Post</h3>
+            <p class="text-muted">Share a quick update or announcement with your team</p>
+            <form method="POST" action="/dashboard">
+                <div class="form-group">
+                    <label for="content">Post Content</label>
+                    <textarea id="content" name="content" placeholder="What's on your mind? Share an update, announcement, or insight..." required></textarea>
+                </div>
+                <button type="submit">Post Update</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="post-header" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h3 style="margin-top: 0; margin-bottom: 0;">Recent Posts</h3>
+                    {% if q %}<p class="text-muted" style="margin: 4px 0 0; font-size: 0.9rem;">Results for: <strong>{{ q }}</strong></p>{% endif %}
+                </div>
+            </div>
+            {% if posts %}
+                <ul class="post-list">
+                    {% for post in posts %}
+                        <li class="post-item">
+                            <div class="post-header">
+                                <div>
+                                    <strong>{{ post['author'] }}</strong>
+                                    <span class="post-meta">Post #{{ post['id'] }}</span>
+                                </div>
+                            </div>
+                            <div class="post-content">
+                                {{ post['content'] | safe }}
+                            </div>
+                            <div class="post-actions">
+                                {% if username == post['author'] or role == 'admin' %}
+                                    <a href="/edit/{{ post['id'] }}">✏️ Edit</a>
+                                {% endif %}
+                                <a href="/delete/{{ post['id'] }}" class="danger">🗑️ Delete</a>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="empty-state">
+                    <p style="font-size: 1rem; margin-bottom: 8px;">No posts found</p>
+                    <p>{% if q %}Try adjusting your search or create the first post.{% else %}Be the first to share something with your team!{% endif %}</p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
 {% endblock %} 

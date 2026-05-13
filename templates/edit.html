@@ -1,22 +1,37 @@
 {% extends 'base.html' %}
 {% block content %}
-    <nav>
-        <a href="/dashboard">Back to Dashboard</a>
-        {% if role == 'admin' %}
-            <a href="/admin">Admin Panel</a>
-        {% endif %}
-        <a href="/logout">Logout</a>
-    </nav>
+    <section class="hero-layout" style="margin-bottom: 32px;">
+        <div class="hero-panel">
+            <p class="eyebrow">Edit</p>
+            <h1 class="hero-title">Edit Post</h1>
+            <p class="hero-copy">Update your post content and save the changes. Your edits will be reflected immediately in the feed.</p>
+        </div>
+        <div class="hero-panel compact">
+            <h3>Post Actions</h3>
+            <p class="text-muted">Quick navigation</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a href="/dashboard" class="button secondary" style="text-align: center;">← Back to Dashboard</a>
+                {% if role == 'admin' %}
+                    <a href="/admin" class="button secondary" style="text-align: center;">👨‍💼 Admin Panel</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
 
-    <section class="card">
-        <h2>Edit Post</h2>
-        <p class="text-muted">Update the content and save to refresh the feed.</p>
+    <section class="card" style="max-width: 800px; margin-left: auto; margin-right: auto;">
+        <div style="margin-bottom: 24px;">
+            <h3 style="margin-top: 0; margin-bottom: 8px;">Update Post Content</h3>
+            <p class="text-muted">Post ID: #{{ post['id'] }}</p>
+        </div>
         <form method="POST" action="/edit/{{ post['id'] }}">
             <div class="form-group">
                 <label for="content">Post Content</label>
-                <textarea id="content" name="content" required>{{ post['content'] }}</textarea>
+                <textarea id="content" name="content" placeholder="Update your post content..." required>{{ post['content'] }}</textarea>
             </div>
-            <button type="submit">Save Changes</button>
+            <div style="display: flex; gap: 12px;">
+                <button type="submit">💾 Save Changes</button>
+                <a href="/dashboard" class="button secondary">Cancel</a>
+            </div>
         </form>
     </section>
 {% endblock %} 

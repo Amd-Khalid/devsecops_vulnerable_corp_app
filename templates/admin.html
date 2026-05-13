@@ -1,30 +1,91 @@
 {% extends 'base.html' %}
 {% block content %}
-    <nav>
-        <a href="/dashboard">Back to Dashboard</a>
-        <a href="/logout">Logout</a>
-    </nav>
+    <section class="hero-layout">
+        <div class="hero-panel">
+            <p class="eyebrow">Administration</p>
+            <h1 class="hero-title">Admin Dashboard</h1>
+            <p class="hero-copy">Manage user accounts, review roles, and monitor workspace access from your secure admin panel.</p>
+            <div class="stat-grid">
+                <div class="stat">
+                    <strong>{{ users|length }}</strong>
+                    <span>Total Users</span>
+                </div>
+                <div class="stat">
+                    <strong>{% set admin_count = users|selectattr('role', 'equalto', 'admin')|list|length %}{{ admin_count }}</strong>
+                    <span>Admins</span>
+                </div>
+                <div class="stat">
+                    <strong>{% set user_count = users|selectattr('role', 'equalto', 'user')|list|length %}{{ user_count }}</strong>
+                    <span>Regular Users</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-panel compact">
+            <h3>Quick Stats</h3>
+            <p class="text-muted">System overview</p>
+            <div style="display: grid; gap: 12px; margin-top: 16px;">
+                <div style="padding: 12px 16px; background: var(--surface-alt); border-radius: 10px; border-left: 3px solid var(--primary);">
+                    <p style="margin: 0; color: var(--text-tertiary); font-size: 0.85rem;">Active Role</p>
+                    <p style="margin: 4px 0 0; font-weight: 700; color: var(--text);">Administrator</p>
+                </div>
+                <div style="padding: 12px 16px; background: var(--surface-alt); border-radius: 10px; border-left: 3px solid var(--success);">
+                    <p style="margin: 0; color: var(--text-tertiary); font-size: 0.85rem;">Portal Status</p>
+                    <p style="margin: 4px 0 0; font-weight: 700; color: var(--text);">Online</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <section class="card">
-        <h2>Admin Control Panel</h2>
-        <p class="text-muted">Review all registered users and their current roles.</p>
-        <div style="overflow-x:auto; margin-top: 18px;">
+        <div style="margin-bottom: 24px;">
+            <h3 style="margin-top: 0; margin-bottom: 8px;">User Directory</h3>
+            <p class="text-muted">Manage all registered users and their account roles</p>
+        </div>
+        {% if users %}
+        <div style="overflow-x:auto;">
             <table>
                 <thead>
                     <tr>
                         <th>Username</th>
                         <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for user in users %}
                         <tr>
-                            <td>{{ user['username'] }}</td>
-                            <td>{{ user['role'] }}</td>
+                            <td>
+                                <strong>{{ user['username'] }}</strong>
+                            </td>
+                            <td>
+                                <span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; {% if user['role'] == 'admin' %}background: var(--primary-lighter); color: var(--primary);{% else %}background: var(--surface-alt); color: var(--text-secondary);{% endif %}">
+                                    {{ user['role']|upper }}
+                                </span>
+                            </td>
+                            <td>
+                                <span style="display: inline-flex; align-items: center; gap: 6px; color: var(--success); font-size: 0.9rem;">
+                                    <span style="width: 6px; height: 6px; background: var(--success); border-radius: 50%;"></span>
+                                    Active
+                                </span>
+                            </td>
+                            <td>
+                                {% if user['username'] != session.username %}
+                                    <form method="POST" action="{{ url_for('delete_user', username=user['username']) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user? All their posts will also be deleted.');"><button type="submit" style="padding: 6px 12px; background: var(--error); color: white; border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='var(--error-dark)'" onmouseout="this.style.background='var(--error)'">Delete</button></form>
+                                {% else %}
+                                    <span style="color: var(--text-tertiary); font-size: 0.85rem;">—</span>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No users found in the system</p>
+        </div>
+        {% endif %}
     </section>
 {% endblock %} 

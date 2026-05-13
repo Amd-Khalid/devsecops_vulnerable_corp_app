@@ -144,6 +144,34 @@ def admin():
     conn.close()
     return render_template('admin.html', users=users)
 
+@app.route('/delete_user/<username>', methods=['POST'])
+def delete_user(username):
+    # Admin-only user deletion
+    if 'username' not in session:
+        return redirect('/login')
+    if session.get('role') != 'admin':
+        return "Access Denied: Admins Only", 403
+    
+    # Prevent self-deletion
+    if session.get('username') == username:
+        flash('Cannot delete your own account!')
+        return redirect('/admin')
+    
+    conn = get_db_connection()
+    try:
+        # Delete user's posts first
+        conn.execute("DELETE FROM posts WHERE author = ?", (username,))
+        # Delete the user
+        conn.execute("DELETE FROM users WHERE username = ?", (username,))
+        conn.commit()
+        flash(f'User {username} deleted successfully.')
+    except Exception as e:
+        flash(f'Error deleting user: {str(e)}')
+    finally:
+        conn.close()
+    
+    return redirect('/admin')
+
 # CRUD: Delete
 @app.route('/delete/<int:post_id>')
 def delete_post(post_id):
