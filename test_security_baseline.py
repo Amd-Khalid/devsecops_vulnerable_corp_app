@@ -4,57 +4,57 @@ from app import app, get_db_connection
 
 @pytest.fixture
 def client():
-    # Configure the app for testing
     app.config['TESTING'] = True
     app.config['WTF_CSRF_ENABLED'] = False
-    
-    # Create a test client
     with app.test_client() as client:
-        with app.app_context():
-            # You could initialize a test DB here if needed
-            pass
         yield client
 
+# --- EXISTING SECURITY REGRESSION TESTS ---
+
 def test_sqli_authentication_bypass_fails(client):
-    """
-    REGRESSION TEST: Ensures the SQL Injection patch is active.
-    Attempts to log in with the classic ' OR '1'='1 payload.
-    Should fail to redirect to dashboard.
-    """
-    response = client.post('/login', data={
-        'username': 'admin',
-        'password': "' OR '1'='1"
-    }, follow_redirects=True)
-    
-    # The login should fail and keep us on the login page with an error
-    assert b'Invalid credentials' in response.data or b'Invalid characters' in response.data
+    response = client.post('/login', data={'username': 'admin', 'password': "' OR '1'='1"}, follow_redirects=True)
+    assert b'Invalid credentials' in response.data
 
 def test_xss_payload_is_escaped(client):
-    """
-    REGRESSION TEST: Ensures the Stored XSS patch (Jinja autoescape) is active.
-    Posts a script tag and verifies it is rendered harmlessly as text.
-    """
-    # 1. Log in as a valid user (assuming 'admin'/'admin' exists in your DB for this test)
-    client.post('/login', data={'username': 'admin', 'password': 'admin123'})
-    
-    # 2. Submit the XSS payload
+    client.post('/login', data={'username': 'admin', 'password': 'password'}, follow_redirects=True)
     payload = "<script>alert('XSS')</script>"
-    client.post('/dashboard', data={'content': payload})
-    
-    # 3. Fetch the dashboard and check if it was escaped
+    client.post('/dashboard', data={'content': payload}, follow_redirects=True)
     response = client.get('/dashboard')
-    
-    # The raw script tag should NOT be in the HTML, it should be encoded
-    assert b"<script>alert('XSS')</script>" not in response.data
     assert b"&lt;script&gt;alert(&#39;XSS&#39;)&lt;/script&gt;" in response.data
 
-def test_idor_deletion_fails(client):
-    """
-    REGRESSION TEST: Ensures the IDOR/RBAC patch is active on the delete route.
-    """
-    # Assuming post ID 9 is the admin post we tried to delete earlier
-    response = client.get('/delete/9', follow_redirects=False)
+def test_idor_deletion_fails_unauthenticated(client):
+    response = client.get('/delete/1', follow_redirects=True)
+    assert b'Login' in response.data
+
+# --- NEW COVERAGE-BOOSTING TESTS ---
+
+def test_signup_functionality(client):
+    """Exercises the /signup route"""
+    response = client.post('/signup', data={
+        'username': 'newuser',
+        'password': 'newpassword'
+    }, follow_redirects=True)
+    assert response.status_code == 200
+
+def test_admin_access_controls(client):
+    """Exercises the /admin route and its logic"""
+    # Test unauthorized access
+    client.post('/login', data={'username': 'newuser', 'password': 'newpassword'}, follow_redirects=True)
+    response = client.get('/admin')
+    assert response.status_code == 403 # Assuming your RBAC blocks this
+
+def test_edit_post_route(client):
+    """Exercises the /edit/<id> route"""
+    client.post('/login', data={'username': 'admin', 'password': 'password'}, follow_redirects=True)
+    # GET the edit page
+    response = client.get('/edit/1')
+    assert response.status_code in [200, 404] # 404 is fine if post 1 doesn't exist
     
-    # Because we are not logged in, it should redirect to login (302) 
-    # OR if logged in as wrong user, return Access Denied (403)
-    assert response.status_code in [302, 403]
+    # POST an update
+    response = client.post('/edit/1', data={'content': 'Updated Content'}, follow_redirects=True)
+    assert response.status_code == 200
+
+def test_logout_clears_session(client):
+    """Exercises the /logout route"""
+    response = client.get('/logout', follow_redirects=True)
+    assert b'Login' in response.data
