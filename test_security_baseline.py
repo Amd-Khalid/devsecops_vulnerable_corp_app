@@ -21,7 +21,7 @@ def test_sqli_authentication_bypass_fails(client):
 def test_xss_payload_is_escaped(client):
     """Verifies XSS patch: Script tags must be escaped."""
     # 1. Log in with the established admin credentials
-    client.post('/login', data={'username': 'admin', 'password': 'admin'}, follow_redirects=True)
+    client.post('/login', data={'username': 'admin', 'password': 'admin123'}, follow_redirects=True)
     
     # 2. Submit the XSS payload to the dashboard
     payload = "<script>alert('XSS')</script>"
