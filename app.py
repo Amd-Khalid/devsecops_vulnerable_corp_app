@@ -184,10 +184,18 @@ def delete_user(username):
 def delete_post(post_id):
     if 'username' not in session:
         return redirect(LOGIN_ROUTE)
-        
-    # INTENTIONAL VULNERABILITY: IDOR (Insecure Direct Object Reference)
-    # The app deletes the post based on ID, but doesn't check if the current user OWNS the post!
+
     conn = get_db_connection()
+    post = conn.execute("SELECT * FROM posts WHERE id = ?", (post_id,)).fetchone()
+
+    if post is None:
+        conn.close()
+        abort(404)
+
+    if session.get('username') != post['author'] and session.get('role') != 'admin':
+        conn.close()
+        return "Access Denied", 403
+
     conn.execute("DELETE FROM posts WHERE id = ?", (post_id,))
     conn.commit()
     conn.close()

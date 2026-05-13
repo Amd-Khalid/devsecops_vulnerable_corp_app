@@ -69,8 +69,8 @@
                             <div class="post-actions">
                                 {% if username == post['author'] or role == 'admin' %}
                                     <a href="/edit/{{ post['id'] }}">✏️ Edit</a>
+                                    <a href="/delete/{{ post['id'] }}" class="danger">🗑️ Delete</a>
                                 {% endif %}
-                                <a href="/delete/{{ post['id'] }}" class="danger">🗑️ Delete</a>
                             </div>
                         </li>
                     {% endfor %}
