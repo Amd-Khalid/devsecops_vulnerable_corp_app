@@ -1,20 +1,52 @@
 import pytest
+import sqlite3
 from app import app
 
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
     app.config['WTF_CSRF_ENABLED'] = False
-    # Use a static key for testing sessions
     app.secret_key = 'test_secret_key'
     with app.test_client() as client:
         yield client
 
-# --- HELPER ---
+# --- HELPERS ---
 
 def login_as_admin(client):
     """Logs in with admin credentials and returns the response."""
     return client.post('/login', data={'username': 'admin', 'password': 'admin123'}, follow_redirects=True)
+
+def create_test_user(username='testuser_coverage', password='testpass1'):
+    """Inserts a plain 'user' role account directly into the DB. Returns username."""
+    conn = sqlite3.connect('database.db')
+    try:
+        conn.execute(
+            "INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, 'user')",
+            (username, password)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return username
+
+def delete_test_user(username='testuser_coverage'):
+    """Cleans up the test user and their posts after a test."""
+    conn = sqlite3.connect('database.db')
+    try:
+        conn.execute("DELETE FROM posts WHERE author = ?", (username,))
+        conn.execute("DELETE FROM users WHERE username = ?", (username,))
+        conn.commit()
+    finally:
+        conn.close()
+
+def get_latest_post_id():
+    """Returns the ID of the most recently inserted post."""
+    conn = sqlite3.connect('database.db')
+    try:
+        row = conn.execute("SELECT id FROM posts ORDER BY id DESC LIMIT 1").fetchone()
+        return row[0] if row else None
+    finally:
+        conn.close()
 
 
 # --- SECURITY REGRESSION TESTS ---
@@ -170,3 +202,93 @@ def test_edit_nonexistent_post_returns_404(client):
     login_as_admin(client)
     response = client.get('/edit/999999')
     assert response.status_code == 404
+
+
+# --- INDEX ROUTE TESTS (covers lines 23-25) ---
+
+def test_index_redirects_to_login_when_unauthenticated(client):
+    """GET / without a session should redirect to /login."""
+    response = client.get('/', follow_redirects=False)
+    assert response.status_code == 302
+    assert b'/login' in response.data or response.location.endswith('/login')
+
+def test_index_redirects_to_dashboard_when_authenticated(client):
+    """GET / with an active session should redirect to /dashboard."""
+    login_as_admin(client)
+    response = client.get('/', follow_redirects=False)
+    assert response.status_code == 302
+    assert b'/dashboard' in response.data or response.location.endswith('/dashboard')
+
+
+# --- EDIT POST — POST method & access denied (covers lines 131-140) ---
+
+def test_edit_post_updates_content(client):
+    """POST /edit/<id> as the author should update the post and redirect. Covers the POST branch."""
+    login_as_admin(client)
+    # Create a post so we have a real ID to work with
+    client.post('/dashboard', data={'content': 'original content'}, follow_redirects=True)
+    post_id = get_latest_post_id()
+    assert post_id is not None, "Need at least one post in the DB to run this test"
+
+    response = client.post(f'/edit/{post_id}', data={'content': 'updated content'}, follow_redirects=True)
+    assert response.status_code == 200
+
+def test_edit_post_access_denied_for_non_owner(client):
+    """Non-owner non-admin user trying to edit someone else's post gets 403. Covers lines 131-133."""
+    # Create a regular user
+    create_test_user('other_user', 'otherpass1')
+    try:
+        # Admin creates a post
+        login_as_admin(client)
+        client.post('/dashboard', data={'content': 'admin only post'}, follow_redirects=True)
+        post_id = get_latest_post_id()
+        assert post_id is not None
+
+        # Log out admin, log in as the regular user
+        client.get('/logout')
+        client.post('/login', data={'username': 'other_user', 'password': 'otherpass1'}, follow_redirects=True)
+
+        # Try to edit admin's post
+        response = client.get(f'/edit/{post_id}')
+        assert response.status_code == 403
+    finally:
+        delete_test_user('other_user')
+
+
+# --- DELETE USER ROUTE (covers lines 161-184) ---
+
+def test_delete_user_requires_login(client):
+    """Unauthenticated POST /delete_user/<username> must redirect to login. Covers line 162."""
+    response = client.post('/delete_user/anyone', follow_redirects=True)
+    assert b'login' in response.data.lower()
+
+def test_delete_user_forbidden_for_non_admin(client):
+    """A regular user attempting to delete someone gets 403. Covers lines 163-164."""
+    create_test_user('regular_user', 'regularpass1')
+    try:
+        client.post('/login', data={'username': 'regular_user', 'password': 'regularpass1'}, follow_redirects=True)
+        response = client.post('/delete_user/admin')
+        assert response.status_code == 403
+    finally:
+        client.get('/logout')
+        delete_test_user('regular_user')
+
+def test_delete_user_prevents_self_deletion(client):
+    """Admin cannot delete their own account. Covers lines 167-169."""
+    login_as_admin(client)
+    response = client.post('/delete_user/admin', follow_redirects=True)
+    # Should flash 'Cannot delete your own account!' and stay on /admin
+    assert b'cannot delete' in response.data.lower() or response.status_code == 200
+
+def test_delete_user_successfully_removes_user(client):
+    """Admin can delete another user. Covers lines 171-184 (try block + redirect)."""
+    # Create a throwaway user to delete
+    create_test_user('user_to_delete', 'deletepass1')
+    login_as_admin(client)
+    response = client.post('/delete_user/user_to_delete', follow_redirects=True)
+    assert response.status_code == 200
+    # Confirm user is gone
+    conn = sqlite3.connect('database.db')
+    row = conn.execute("SELECT * FROM users WHERE username = 'user_to_delete'").fetchone()
+    conn.close()
+    assert row is None
