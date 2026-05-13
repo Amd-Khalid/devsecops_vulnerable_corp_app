@@ -1,9 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
 import sqlite3
 import re
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'super_secret_key_change_in_production' # Vulnerability: Hardcoded secret
+app.secret_key = os.getenv("SECRET_KEY")
 
 app.config['SESSION_COOKIE_HTTPONLY'] = False
 
