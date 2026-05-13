@@ -35,8 +35,9 @@ def login():
         
         # INTENTIONAL VULNERABILITY: SQL Injection
         # We are concatenating strings instead of using parameterized queries
-        query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
-        user = conn.execute(query).fetchone()
+        # REMEDIATED: Secure Parameterized Query
+        query = "SELECT * FROM users WHERE username = ? AND password = ?"
+        user = conn.execute(query, (username, password)).fetchone()
         conn.close()
 
         if user:
