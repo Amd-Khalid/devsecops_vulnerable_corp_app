@@ -24,34 +24,36 @@ def index():
         return redirect(DASHBOARD_ROUTE)
     return redirect(LOGIN_ROUTE)
 
-@app.route(LOGIN_ROUTE, methods=['GET', 'POST'])
+@app.route(LOGIN_ROUTE, methods=['GET'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        # Basic Validation (Meets grading requirement)
-        if not re.match(r"^[a-zA-Z0-9_]+$", username):
-            flash("Invalid characters in username!")
-            return render_template('login.html')
-
-        conn = get_db_connection()
-        
-        # INTENTIONAL VULNERABILITY: SQL Injection
-        # We are concatenating strings instead of using parameterized queries
-        # REMEDIATED: Secure Parameterized Query
-        query = "SELECT * FROM users WHERE username = ? AND password = ?"
-        user = conn.execute(query, (username, password)).fetchone()
-        conn.close()
-
-        if user:
-            session['username'] = user['username']
-            session['role'] = user['role']
-            return redirect(DASHBOARD_ROUTE)
-        else:
-            flash('Invalid credentials')
-            
     return render_template('login.html')
+
+@app.route(LOGIN_ROUTE, methods=['POST'])
+def login_submit():
+    username = request.form['username']
+    password = request.form['password']
+    
+    # Basic Validation (Meets grading requirement)
+    if not re.match(r"^[a-zA-Z0-9_]+$", username):
+        flash("Invalid characters in username!")
+        return redirect(LOGIN_ROUTE)
+
+    conn = get_db_connection()
+    
+    # INTENTIONAL VULNERABILITY: SQL Injection
+    # We are concatenating strings instead of using parameterized queries
+    # REMEDIATED: Secure Parameterized Query
+    query = "SELECT * FROM users WHERE username = ? AND password = ?"
+    user = conn.execute(query, (username, password)).fetchone()
+    conn.close()
+
+    if user:
+        session['username'] = user['username']
+        session['role'] = user['role']
+        return redirect(DASHBOARD_ROUTE)
+    else:
+        flash('Invalid credentials')
+        return redirect(LOGIN_ROUTE)
 
 @app.route('/signup', methods=['POST'])
 def signup():
