@@ -1,10 +1,10 @@
 # Vulnerable Corporate App - DevSecOps Educational Project
 
-A deliberately vulnerable Flask web application designed for educational purposes to demonstrate common security vulnerabilities and teach DevSecOps practices.
+A Flask web application designed for educational purposes to demonstrate common security vulnerabilities and teach DevSecOps practices.
 
 ## Overview
 
-This project is an intentionally flawed corporate portal application that includes multiple security vulnerabilities for learning and testing purposes. It demonstrates real-world security issues that should be avoided in production systems.
+This project is an corporate portal application for testing purposes. It demonstrates real-world security monitoring that should be avoided in production systems.
 
 ## Features
 
@@ -13,17 +13,6 @@ This project is an intentionally flawed corporate portal application that includ
 - **CRUD Operations**: Create, read, and delete posts
 - **Dashboard**: User feed for viewing posts
 - **Admin Panel**: Admin-only access to view users
-
-## Vulnerabilities Included
-
-⚠️ **Educational Vulnerabilities** - These are intentional for learning:
-
-1. **SQL Injection** - Login form accepts SQL injection attacks
-2. **Hardcoded Secrets** - Secret key is hardcoded in source
-3. **Plaintext Passwords** - Database stores passwords without hashing
-4. **Stored XSS** - User content is not sanitized before display
-5. **Insecure Direct Object Reference (IDOR)** - Users can delete any post regardless of ownership
-6. **Weak Password Security** - Plaintext passwords in database
 
 ## Tech Stack
 
@@ -119,10 +108,6 @@ Press `Ctrl + C` in the terminal running the Flask server.
 See `requirements.txt`:
 - Flask 2.2.2
 - Werkzeug 2.2.2
-
-## Warning
-
-⚠️ **Do NOT use this application in production.** This application contains intentional security vulnerabilities and is designed solely for educational and testing purposes. Never expose this to the internet or use with real user data.
 
 ## License
 
