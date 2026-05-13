@@ -47,11 +47,81 @@ CorpNet is a corporate portal web application designed to handle authenticated u
 
 ---
 
-## 4. Architecture & Threat Model
+<!-- ## 4. Architecture & Threat Model
 The application’s architecture introduces specific trust boundaries and attack surfaces:
 * **External Boundary:** The primary attack surface is the web interface exposed on port 5000. Unauthenticated attackers can interact with the `/login` endpoint.
 * **Internal Boundary (Authenticated):** Authenticated standard users have access to the `/dashboard`, `/edit`, and `/delete` endpoints. 
-* **Threat Actors:** The primary threat models include external malicious actors attempting to bypass authentication, and internal malicious/compromised users attempting horizontal privilege escalation (IDOR) or vertical privilege escalation (XSS targeting Admins).
+* **Threat Actors:** The primary threat models include external malicious actors attempting to bypass authentication, and internal malicious/compromised users attempting horizontal privilege escalation (IDOR) or vertical privilege escalation (XSS targeting Admins). -->
+
+<!-- --- -->
+
+## 4. Architecture & Threat Model
+
+### 4.1 Architecture Diagram (DFD)
+
+The system follows a **layered architecture** with clear separation between client, application, and database layers.
+
+![Threat Model DFD](Threat_model.png)
+
+**Trust Boundaries Identified:**
+- **Internet (Untrusted)** – Separates external browsers from internal Flask App
+- **CI/CD Boundary** – Isolates GitHub Actions pipeline from production app
+
+**Actors & Data Flows:**
+| Actor | Direction | Data Flow |
+|-------|-----------|-----------|
+| Web Browser (User) | → Flask App | Login credentials, Dashboard requests |
+| Flask App | → Web Browser | Session cookie, HTML responses |
+| Admin Browser | → Flask App | Admin queries, User management |
+| GitHub Actions | → Flask App | SAST/DAST/SCA scans |
+| Flask App | ↔ Databases | SQL read/write operations |
+
+---
+
+### 4.2 STRIDE Threat Analysis
+
+Full STRIDE methodology applied to each component:
+
+| Component | Spoofing | Tampering | Repudiation | Info Disclosure | DoS | EoP |
+|-----------|----------|-----------|-------------|-----------------|-----|-----|
+| **Flask App** | ID 18,24,31,37,44,59,68 | ID 45,60,69 | ID 25,38,46,61,70 | ID 47,62,71 | ID 26,39,48,63,72 | ID 8,15,17,29,30,42,43,50,51,65,66,74,75 |
+| **User Database** | ID 2,5 | ID 3 | ID 20 | ID 6 | ID 4 | - |
+| **Post Database** | ID 9,12 | ID 10 | ID 33 | ID 13 | ID 11 | - |
+| **Web Browser** | ID 7 | - | ID 57 | - | - | - |
+| **Admin Browser** | ID 14 | - | ID 54 | - | - | - |
+| **GitHub Actions** | ID 16 | - | - | - | - | - |
+
+---
+
+### 4.3 Risk Prioritization (CVSS Scoring)
+
+| Threat ID | Title | Category | CVSS | Priority |
+|-----------|-------|----------|------|----------|
+| **ID 3** | SQL Injection (User DB) | Tampering | 9.8 | 🔴 CRITICAL |
+| **ID 10** | SQL Injection (Post DB) | Tampering | 9.8 | 🔴 CRITICAL |
+| **ID 52,67,76** | CSRF Attacks | EoP | 8.8 | 🔴 HIGH |
+| **ID 45,60,69** | Input Validation Missing | Tampering | 7.5 | 🟠 HIGH |
+| **ID 6,13** | Weak Access Control | Info Disclosure | 6.5 | 🟡 MEDIUM |
+| **ID 4,11** | Resource Exhaustion | DoS | 5.3 | 🟢 LOW |
+
+**Attack Surface (Mapped to DAST/Pentest Scope):**
+| Attack Vector | DAST Test | Pentest Focus |
+|---------------|-----------|---------------|
+| SQL Injection (Login) | ZAP Scan | Auth bypass |
+| Stored XSS (Posts) | ZAP Active | Script injection |
+| IDOR (Delete) | Manual | Privilege escalation |
+| CSRF (Admin) | Manual | State-changing attacks |
+
+---
+
+### 4.4 Post-Remediation Updates
+
+| Vulnerability | Fix Applied | Re-scanned |
+|---------------|-------------|-------------|
+| SQL Injection | ✅ Parameterized queries | Pip-audit: Clean |
+| XSS | ✅ Removed `\| safe` filter | ZAP: No alerts |
+| IDOR | ✅ Ownership check added | Manual: Fixed |
+| Hardcoded Secret | ✅ Env variable | SonarQube: Pass |
 
 ---
 
