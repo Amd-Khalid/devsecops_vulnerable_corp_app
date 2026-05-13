@@ -67,15 +67,6 @@ The system follows a layered architecture with clear separation between client, 
 - **Internet (Untrusted)** – Separates external browsers from internal Flask App
 - **Server (Trusted)** – Contains Flask App, User Database, and Post Database
 
-**Actors & Data Flows:**
-| Actor | Direction | Data Flow |
-|-------|-----------|-----------|
-| Web Browser (User) | → Flask App | Login credentials, Dashboard requests |
-| Flask App | → Web Browser | Session cookie, HTML responses |
-| Admin Browser | → Flask App | Admin queries, User management |
-| GitHub Actions | → Flask App | SAST/DAST/SCA scans |
-| Flask App | ↔ Databases | SQL read/write operations |
-
 ---
 
 ### 4.2 STRIDE Threat Analysis
