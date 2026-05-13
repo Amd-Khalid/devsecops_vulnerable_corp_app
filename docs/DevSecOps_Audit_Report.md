@@ -61,11 +61,11 @@ The application’s architecture introduces specific trust boundaries and attack
 
 The system follows a **layered architecture** with clear separation between client, application, and database layers.
 
-![Threat Model DFD](Threat_model.png)
+![Threat Model DFD](threat_model.png)
 
 **Trust Boundaries Identified:**
 - **Internet (Untrusted)** – Separates external browsers from internal Flask App
-- **CI/CD Boundary** – Isolates GitHub Actions pipeline from production app
+- **Server (Trusted)** – Contains Flask App, User Database, and Post Database
 
 **Actors & Data Flows:**
 | Actor | Direction | Data Flow |
@@ -107,8 +107,8 @@ Full STRIDE methodology applied to each component:
 **Attack Surface (Mapped to DAST/Pentest Scope):**
 | Attack Vector | DAST Test | Pentest Focus |
 |---------------|-----------|---------------|
-| SQL Injection (Login) | ZAP Scan | Auth bypass |
-| Stored XSS (Posts) | ZAP Active | Script injection |
+| SQL Injection (Login) | ✓ ZAP Scan | Auth bypass |
+| Stored XSS (Posts) | ✓ ZAP Active | Script injection |
 | IDOR (Delete) | Manual | Privilege escalation |
 | CSRF (Admin) | Manual | State-changing attacks |
 
@@ -124,6 +124,7 @@ Full STRIDE methodology applied to each component:
 | Hardcoded Secret | ✅ Env variable | SonarQube: Pass |
 
 ---
+
 
 ## 5. DevSecOps Pipeline Integration (CI/CD)
 To enforce continuous security, a robust DevSecOps pipeline was engineered using GitHub Actions (`security-pipeline.yml`). The pipeline is triggered automatically on every code push or pull request to the `main` branch.
