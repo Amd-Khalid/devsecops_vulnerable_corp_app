@@ -8,6 +8,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
+DASHBOARD_ROUTE = '/dashboard'
 
 def get_db_connection():
     conn = sqlite3.connect('database.db')
@@ -17,7 +18,7 @@ def get_db_connection():
 @app.route('/')
 def index():
     if 'username' in session:
-        return redirect('/dashboard')
+        return redirect(DASHBOARD_ROUTE)
     return redirect('/login')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -43,7 +44,7 @@ def login():
         if user:
             session['username'] = user['username']
             session['role'] = user['role']
-            return redirect('/dashboard')
+            return redirect(DASHBOARD_ROUTE)
         else:
             flash('Invalid credentials')
             
@@ -84,7 +85,7 @@ def logout():
     session.clear() # Proper session termination
     return redirect('/login')
 
-@app.route('/dashboard', methods=['GET', 'POST'])
+@app.route(DASHBOARD_ROUTE, methods=['GET', 'POST'])
 def dashboard():
     if 'username' not in session:
         return redirect('/login')
@@ -131,7 +132,7 @@ def edit_post(post_id):
         conn.execute("UPDATE posts SET content = ? WHERE id = ?", (content, post_id))
         conn.commit()
         conn.close()
-        return redirect('/dashboard')
+        return redirect(DASHBOARD_ROUTE)
 
     conn.close()
     return render_template('edit.html', post=post, role=session.get('role'))
@@ -189,7 +190,7 @@ def delete_post(post_id):
     conn.execute("DELETE FROM posts WHERE id = ?", (post_id,))
     conn.commit()
     conn.close()
-    return redirect('/dashboard')
+    return redirect(DASHBOARD_ROUTE)
 
 if __name__ == '__main__':
     # ssl_context='adhoc' forces Flask to generate a temporary self-signed HTTPS certificate
