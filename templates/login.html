@@ -114,6 +114,40 @@
         .auth-shell .hero-copy {
             max-width: 58ch;
         }
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-wrapper input {
+            width: 100%;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            transition: color var(--transition);
+            user-select: none;
+        }
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+        .eye-icon {
+            width: 20px;
+            height: 20px;
+        }
+        .password-toggle.hidden .eye-icon {
+            opacity: 0.5;
+        }
         @media (max-width: 768px) {
             .auth-shell .auth-card-header,
             .auth-shell .auth-card-body {
@@ -173,7 +207,15 @@
                         </div>
                         <div class="form-group">
                             <label for="password">Password</label>
-                            <input id="password" type="password" name="password" placeholder="Enter your password" required>
+                            <div class="password-wrapper">
+                                <input id="password" type="password" name="password" placeholder="Enter your password" required>
+                                <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                                    <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="stacked-actions">
                             <button type="submit" style="width: 100%;">Sign In</button>
@@ -200,11 +242,27 @@
                         </div>
                         <div class="form-group">
                             <label for="signup_password">Password</label>
-                            <input id="signup_password" type="password" name="signup_password" placeholder="At least 6 characters" required>
+                            <div class="password-wrapper">
+                                <input id="signup_password" type="password" name="signup_password" placeholder="At least 6 characters" required>
+                                <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                                    <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="signup_confirm_password">Confirm Password</label>
-                            <input id="signup_confirm_password" type="password" name="signup_confirm_password" placeholder="Re-enter your password" required>
+                            <div class="password-wrapper">
+                                <input id="signup_confirm_password" type="password" name="signup_confirm_password" placeholder="Re-enter your password" required>
+                                <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                                    <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                         <button type="submit" style="width: 100%;">Create Account</button>
                     </form>
@@ -212,4 +270,28 @@
             </div>
         </div>
     </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordToggles = document.querySelectorAll('.password-toggle');
+            
+            passwordToggles.forEach(toggle => {
+                toggle.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    const input = this.parentElement.querySelector('input');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.classList.remove('hidden');
+                    } else {
+                        input.type = 'password';
+                        this.classList.add('hidden');
+                    }
+                });
+                
+                // Initialize with hidden class since inputs start as password type
+                toggle.classList.add('hidden');
+            });
+        });
+    </script>
 {% endblock %} 
