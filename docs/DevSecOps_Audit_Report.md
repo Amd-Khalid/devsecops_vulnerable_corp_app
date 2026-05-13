@@ -61,7 +61,7 @@ The application’s architecture introduces specific trust boundaries and attack
 
 The system follows a layered architecture with clear separation between client, application, and database layers.
 
-![Threat Model DFD](assets/threat_model.png)
+![Threat Model DFD](assets/Threat_model.png)
 
 **Trust Boundaries Identified:**
 - **Internet (Untrusted)** – Separates external browsers from internal Flask App
