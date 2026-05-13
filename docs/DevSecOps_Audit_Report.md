@@ -59,9 +59,9 @@ The application’s architecture introduces specific trust boundaries and attack
 
 ### 4.1 Architecture Diagram (DFD)
 
-The system follows a **layered architecture** with clear separation between client, application, and database layers.
+The system follows a layered architecture with clear separation between client, application, and database layers.
 
-![Threat Model DFD](threat_model.png)
+![Threat Model DFD](assets/threat_model.png)
 
 **Trust Boundaries Identified:**
 - **Internet (Untrusted)** – Separates external browsers from internal Flask App
@@ -107,8 +107,8 @@ Full STRIDE methodology applied to each component:
 **Attack Surface (Mapped to DAST/Pentest Scope):**
 | Attack Vector | DAST Test | Pentest Focus |
 |---------------|-----------|---------------|
-| SQL Injection (Login) | ✓ ZAP Scan | Auth bypass |
-| Stored XSS (Posts) | ✓ ZAP Active | Script injection |
+| SQL Injection (Login) | ZAP Scan | Auth bypass |
+| Stored XSS (Posts) | ZAP Active | Script injection |
 | IDOR (Delete) | Manual | Privilege escalation |
 | CSRF (Admin) | Manual | State-changing attacks |
 
