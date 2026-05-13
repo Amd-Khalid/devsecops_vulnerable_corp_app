@@ -10,6 +10,8 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", 'safe_development_fallback_key_123')
 LOGIN_ROUTE = '/login'
 DASHBOARD_ROUTE = '/dashboard'
+APP_HOST = os.getenv('APP_HOST', '127.0.0.1')
+APP_PORT = int(os.getenv('APP_PORT', '5000'))
 
 def get_db_connection():
     conn = sqlite3.connect('database.db')
@@ -203,4 +205,4 @@ def delete_post(post_id):
 
 if __name__ == '__main__':
     # ssl_context='adhoc' forces Flask to generate a temporary self-signed HTTPS certificate
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host=APP_HOST, port=APP_PORT)
