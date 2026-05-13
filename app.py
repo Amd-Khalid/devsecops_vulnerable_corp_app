@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY")
+app.secret_key = os.getenv("SECRET_KEY", 'safe_development_fallback_key_123')
 LOGIN_ROUTE = '/login'
 DASHBOARD_ROUTE = '/dashboard'
 
