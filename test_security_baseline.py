@@ -35,7 +35,7 @@ def test_xss_payload_is_escaped(client):
     Posts a script tag and verifies it is rendered harmlessly as text.
     """
     # 1. Log in as a valid user (assuming 'admin'/'admin' exists in your DB for this test)
-    client.post('/login', data={'username': 'admin', 'password': 'password'})
+    client.post('/login', data={'username': 'admin', 'password': 'admin123'})
     
     # 2. Submit the XSS payload
     payload = "<script>alert('XSS')</script>"
