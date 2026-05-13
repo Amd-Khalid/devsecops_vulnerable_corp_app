@@ -8,35 +8,59 @@
         <a href="/logout">Logout</a>
     </nav>
 
-    <h2>Welcome to the Dashboard</h2>
-    <form method="GET" action="/dashboard" style="margin-bottom:10px;">
-        <input type="text" name="q" placeholder="Search posts or authors" value="{{ q }}" style="padding:6px; width:60%;" />
-        <button type="submit">Search</button>
-        {% if q %}<a href="/dashboard" style="margin-left:10px; color:#666;">Clear</a>{% endif %}
-    </form>
-    
-    <h3>Create a New Post</h3>
-    <form method="POST" action="/dashboard">
-        <textarea name="content" rows="4" cols="50" placeholder="What's on your mind?" required></textarea><br>
-        <button type="submit">Post</button>
-    </form>
+    <section class="card">
+        <div class="post-header">
+            <div>
+                <h2>Company Dashboard</h2>
+                <p class="text-muted">Post updates, search the feed, and manage your content.</p>
+            </div>
+        </div>
+        <form method="GET" action="/dashboard" class="search-bar">
+            <input type="text" name="q" placeholder="Search posts or authors" value="{{ q }}" />
+            <button type="submit">Search</button>
+            {% if q %}<a href="/dashboard" class="button secondary">Clear</a>{% endif %}
+        </form>
+    </section>
 
-    <hr>
-    <h3>Company Feed</h3>
-    {% if q %}
-        <p>Showing results for: <strong>{{ q }}</strong></p>
-    {% endif %}
-    <ul>
-        {% for post in posts %}
-            <li>
-                <strong>{{ post['author'] }}:</strong> 
-                <!-- VULNERABILITY: | safe allows HTML/Scripts to execute (Stored XSS) -->
-                {{ post['content'] | safe }} 
-                {% if username == post['author'] or role == 'admin' %}
-                - <a href="/edit/{{ post['id'] }}" style="color:#0066cc; font-size: 0.8em;">[Edit]</a>
-                {% endif %}
-                - <a href="/delete/{{ post['id'] }}" style="color:red; font-size: 0.8em;">[Delete]</a>
-            </li>
-        {% endfor %}
-    </ul>
-{% endblock %}
+    <section class="card">
+        <h3>Create a New Post</h3>
+        <form method="POST" action="/dashboard">
+            <div class="form-group">
+                <label for="content">Post Content</label>
+                <textarea id="content" name="content" placeholder="Share a company update or highlight." required></textarea>
+            </div>
+            <button type="submit">Post</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <div class="post-header">
+            <h3>Company Feed</h3>
+            {% if q %}<span class="text-muted">Showing results for: <strong>{{ q }}</strong></span>{% endif %}
+        </div>
+        {% if posts %}
+            <ul class="post-list">
+                {% for post in posts %}
+                    <li class="post-item">
+                        <div class="post-header">
+                            <strong>{{ post['author'] }}</strong>
+                            <span class="post-meta">Post #{{ post['id'] }}</span>
+                        </div>
+                        <div>
+                            <!-- VULNERABILITY: | safe allows HTML/Scripts to execute (Stored XSS) -->
+                            {{ post['content'] | safe }}
+                        </div>
+                        <div class="post-actions">
+                            {% if username == post['author'] or role == 'admin' %}
+                                <a href="/edit/{{ post['id'] }}">Edit</a>
+                            {% endif %}
+                            <a href="/delete/{{ post['id'] }}" class="danger">Delete</a>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty-state">No posts found yet. Create the first post or adjust your search query.</p>
+        {% endif %}
+    </section>
+{% endblock %} 

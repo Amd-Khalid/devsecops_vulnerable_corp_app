@@ -1,36 +1,46 @@
 {% extends 'base.html' %}
 {% block content %}
-    <h2>CorpNet Login</h2>
-    
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <p class="alert">{{ messages[0] }}</p>
+        <div class="alert">{{ messages[0] }}</div>
       {% endif %}
     {% endwith %}
 
-    <div style="display: flex; gap: 40px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 280px;">
-            <h3>Existing user</h3>
+    <div class="card-grid">
+        <section class="card">
+            <h2>Welcome Back</h2>
+            <p class="text-muted">Sign in to unlock the internal feed and start posting updates.</p>
             <form method="POST" action="/login">
-                <label>Username:</label><br>
-                <input type="text" name="username" required><br><br>
-                <label>Password:</label><br>
-                <input type="password" name="password" required><br><br>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input id="username" type="text" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" name="password" required>
+                </div>
                 <button type="submit">Login</button>
             </form>
-        </div>
+        </section>
 
-        <div style="flex: 1; min-width: 280px;">
-            <h3>Create a new account</h3>
+        <section class="card">
+            <h2>Create Account</h2>
+            <p class="text-muted">New employees can set up their profile and join the conversation.</p>
             <form method="POST" action="/signup">
-                <label>Username:</label><br>
-                <input type="text" name="signup_username" required><br><br>
-                <label>Password:</label><br>
-                <input type="password" name="signup_password" required><br><br>
-                <label>Confirm Password:</label><br>
-                <input type="password" name="signup_confirm_password" required><br><br>
+                <div class="form-group">
+                    <label for="signup_username">Username</label>
+                    <input id="signup_username" type="text" name="signup_username" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup_password">Password</label>
+                    <input id="signup_password" type="password" name="signup_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup_confirm_password">Confirm Password</label>
+                    <input id="signup_confirm_password" type="password" name="signup_confirm_password" required>
+                </div>
                 <button type="submit">Sign Up</button>
             </form>
-        </div>
+        </section>
     </div>
-{% endblock %}
+{% endblock %} 
