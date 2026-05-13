@@ -8,6 +8,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
+LOGIN_ROUTE = '/login'
 DASHBOARD_ROUTE = '/dashboard'
 
 def get_db_connection():
@@ -19,9 +20,9 @@ def get_db_connection():
 def index():
     if 'username' in session:
         return redirect(DASHBOARD_ROUTE)
-    return redirect('/login')
+    return redirect(LOGIN_ROUTE)
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route(LOGIN_ROUTE, methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -58,15 +59,15 @@ def signup():
 
     if not re.match(r"^[a-zA-Z0-9_]+$", username):
         flash("Username may only contain letters, numbers, and underscores.")
-        return redirect('/login')
+        return redirect(LOGIN_ROUTE)
 
     if len(password) < 6:
         flash("Password must be at least 6 characters long.")
-        return redirect('/login')
+        return redirect(LOGIN_ROUTE)
 
     if password != confirm_password:
         flash("Passwords do not match.")
-        return redirect('/login')
+        return redirect(LOGIN_ROUTE)
 
     conn = get_db_connection()
     try:
@@ -78,17 +79,17 @@ def signup():
     finally:
         conn.close()
 
-    return redirect('/login')
+    return redirect(LOGIN_ROUTE)
 
 @app.route('/logout')
 def logout():
     session.clear() # Proper session termination
-    return redirect('/login')
+    return redirect(LOGIN_ROUTE)
 
 @app.route(DASHBOARD_ROUTE, methods=['GET', 'POST'])
 def dashboard():
     if 'username' not in session:
-        return redirect('/login')
+        return redirect(LOGIN_ROUTE)
         
     conn = get_db_connection()
     
@@ -114,7 +115,7 @@ def dashboard():
 @app.route('/edit/<int:post_id>', methods=['GET', 'POST'])
 def edit_post(post_id):
     if 'username' not in session:
-        return redirect('/login')
+        return redirect(LOGIN_ROUTE)
 
     conn = get_db_connection()
     post = conn.execute("SELECT * FROM posts WHERE id = ?", (post_id,)).fetchone()
@@ -141,7 +142,7 @@ def edit_post(post_id):
 def admin():
     # RBAC IMPLEMENTATION
     if 'username' not in session:
-        return redirect('/login')
+        return redirect(LOGIN_ROUTE)
     if session.get('role') != 'admin':
         return "Access Denied: Admins Only", 403
         
@@ -154,7 +155,7 @@ def admin():
 def delete_user(username):
     # Admin-only user deletion
     if 'username' not in session:
-        return redirect('/login')
+        return redirect(LOGIN_ROUTE)
     if session.get('role') != 'admin':
         return "Access Denied: Admins Only", 403
     
@@ -182,7 +183,7 @@ def delete_user(username):
 @app.route('/delete/<int:post_id>')
 def delete_post(post_id):
     if 'username' not in session:
-        return redirect('/login')
+        return redirect(LOGIN_ROUTE)
         
     # INTENTIONAL VULNERABILITY: IDOR (Insecure Direct Object Reference)
     # The app deletes the post based on ID, but doesn't check if the current user OWNS the post!
