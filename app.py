@@ -9,8 +9,6 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 
-app.config['SESSION_COOKIE_HTTPONLY'] = False
-
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
