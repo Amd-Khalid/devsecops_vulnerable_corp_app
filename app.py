@@ -207,4 +207,4 @@ def delete_post(post_id):
 
 if __name__ == '__main__':
     # ssl_context='adhoc' forces Flask to generate a temporary self-signed HTTPS certificate
-    app.run(host=APP_HOST, port=APP_PORT)
+    app.run(host='0.0.0.0', port=5000, ssl_context='adhoc')
